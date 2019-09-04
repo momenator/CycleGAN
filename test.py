@@ -9,6 +9,8 @@ It then runs inference for --num_test images and save results to an HTML file.
 Example (You need to train models first or download pre-trained models from our website):
     Test a CycleGAN model (both sides):
         python test.py --dataroot ./datasets/maps --name maps_cyclegan --model cycle_gan
+def prepare_fake_scans(model, data):
+avez('./res_test.npz',ef prepare_fake_scans(model, data):
 
     Test a CycleGAN model (one side only):
         python test.py --dataroot datasets/horse2zebra/testA --name horse2zebra_pretrained --model test --no_dropout
@@ -32,6 +34,8 @@ from data import create_dataset
 from models import create_model
 from util.visualizer import save_images
 from util import html
+from util.scan import reconstruct_scan
+import numpy as np
 
 
 if __name__ == '__main__':
@@ -56,11 +60,23 @@ if __name__ == '__main__':
     for i, data in enumerate(dataset):
         if i >= opt.num_test:  # only apply our model to opt.num_test images.
             break
-        model.set_input(data)  # unpack data from data loader
-        model.test()           # run inference
-        visuals = model.get_current_visuals()  # get image results
-        img_path = model.get_image_paths()     # get image paths
-        if i % 5 == 0:  # save images to an HTML file
-            print('processing (%04d)-th image... %s' % (i, img_path))
-        save_images(webpage, visuals, img_path, aspect_ratio=opt.aspect_ratio, width=opt.display_winsize)
+        fake_B = reconstruct_scan(data['A'], model, (256, 256), 'AtoB')
+        fake_A = reconstruct_scan(data['B'], model, (256, 256), 'BtoA')
+        np.savez('./results/ct_mr_cyclegan_patch/fake_scans/fake_MR_{}.npz'.format(data['A_paths'][0]), data=fake_B)
+        np.savez('./results/ct_mr_cyclegan_patch/fake_scans/fake_CT_{}.npz'.format(data['B_paths'][0]), data=fake_A)
+        # model.set_input(data)  # unpack data from data loader
+        # model.test()           # run inference
+        # visuals = model.get_current_visuals()  # get image results
+        # img_path = model.get_image_paths()     # get image paths
+        # if i % 5 == 0:  # save images to an HTML file
+        #    print('processing (%04d)-th image... %s' % (i, img_path))
+        # real_A = visuals['real_A'].cpu().numpy()
+        # real_B = visuals['real_B'].cpu().numpy()
+        # fake_A = visuals['fake_A'].cpu().numpy()
+        # fake_B = visuals['fake_B'].cpu().numpy()
+        # rec_A = visuals['rec_A'].cpu().numpy()
+        # rec_B = visuals['rec_B'].cpu().numpy() 
+        # print(visuals)
+        # np.savez('./results/ct_mr_cyclegan_patch/test_latest/test_{}.npz'.format(i), real_A=real_A, real_B=real_B, fake_A=fake_A, fake_B=fake_B, rec_A=rec_A, rec_B=rec_B)
+        # save_images(webpage, visuals, img_path, aspect_ratio=opt.aspect_ratio, width=opt.display_winsize)
     webpage.save()  # save the HTML

@@ -26,14 +26,15 @@ def make_dataset(dir, max_dataset_size=float("inf")):
 
     for root, _, fnames in sorted(os.walk(dir)):
         for fname in fnames:
-            if is_image_file(fname):
-                path = os.path.join(root, fname)
-                images.append(path)
+            # if is_image_file(fname):
+            path = os.path.join(root, fname)
+            images.append(path)
     return images[:min(max_dataset_size, len(images))]
 
 
 def default_loader(path):
-    return Image.open(path).convert('RGB')
+    return Image.open(path) # don't convert to RGB!
+    # return Image.open(path).convert('RGB')
 
 
 class ImageFolder(data.Dataset):
