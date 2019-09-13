@@ -34,8 +34,9 @@ from data import create_dataset
 from models import create_model
 from util.visualizer import save_images
 from util import html
-from util.scan import reconstruct_scan
+from util.scan import reconstruct_scan, save_scan
 import numpy as np
+import time
 
 
 if __name__ == '__main__':
@@ -49,14 +50,11 @@ if __name__ == '__main__':
     dataset = create_dataset(opt)  # create a dataset given opt.dataset_mode and other options
     model = create_model(opt)      # create a model given opt.model and other options
     model.setup(opt)               # regular setup: load and print networks; create schedulers
-    # create a website
-    web_dir = os.path.join(opt.results_dir, opt.name, '%s_%s' % (opt.phase, opt.epoch))  # define the website directory
-    webpage = html.HTML(web_dir, 'Experiment = %s, Phase = %s, Epoch = %s' % (opt.name, opt.phase, opt.epoch))
+        
     # test with eval mode. This only affects layers like batchnorm and dropout.
     # For [pix2pix]: we use batchnorm and dropout in the original pix2pix. You can experiment it with and without eval() mode.
     # For [CycleGAN]: It should not affect CycleGAN as CycleGAN uses instancenorm without dropout.
-    crops = np.load('./test_crop.npz', allow_pickle=True)['data']
-
+    
     if opt.eval:
         model.eval()
     for i, data in enumerate(dataset):
@@ -66,31 +64,16 @@ if __name__ == '__main__':
         ct_name = data['A_paths'][0].split('/')[-1].replace('.npz', '')
         mr_name = data['B_paths'][0].split('/')[-1].replace('.npz', '')
         
-        idx1 = crops.item().get(ct_name)
-        idx2 = crops.item().get(mr_name)
-
-        # croppedA = data['A'][0][0][idx1[0]:idx1[1], idx1[2]:idx1[3], idx1[4]: idx1[5]]
-        # croppedB = data['B'][0][0][idx2[0]:idx2[1], idx2[2]:idx2[3], idx2[4]: idx2[5]]
+        target_path = '{}/{}'.format(opt.results_dir, opt.name)
+        start = time.time()
         
         fake_B = reconstruct_scan(data['A'], model, (256, 256), 'AtoB')
-        fake_A = reconstruct_scan(data['B'], model, (256, 256), 'BtoA')
+        save_scan(target_path, ct_name, fake_B)
 
-        np.savez('./results/ct_mr_visceral_spine/fake_scans/fake_MR_{}.npz'.format(ct_name), data=fake_B)
-        np.savez('./results/ct_mr_visceral_spine/fake_scans/fake_CT_{}.npz'.format(mr_name), data=fake_A)
+        fake_A = reconstruct_scan(data['B'], model, (256, 256), 'BtoA')
+        save_scan(target_path, mr_name, fake_A)
         
-        # model.set_input(data)  # unpack data from data loader
-        # model.test()           # run inference
-        # visuals = model.get_current_visuals()  # get image results
-        # img_path = model.get_image_paths()     # get image paths
-        # if i % 5 == 0:  # save images to an HTML file
-        #    print('processing (%04d)-th image... %s' % (i, img_path))
-        # real_A = visuals['real_A'].cpu().numpy()
-        # real_B = visuals['real_B'].cpu().numpy()
-        # fake_A = visuals['fake_A'].cpu().numpy()
-        # fake_B = visuals['fake_B'].cpu().numpy()
-        # rec_A = visuals['rec_A'].cpu().numpy()
-        # rec_B = visuals['rec_B'].cpu().numpy() 
-        # print(visuals)
-        # np.savez('./results/ct_mr_cyclegan_patch/test_latest/test_{}.npz'.format(i), real_A=real_A, real_B=real_B, fake_A=fake_A, fake_B=fake_B, rec_A=rec_A, rec_B=rec_B)
-        # save_images(webpage, visuals, img_path, aspect_ratio=opt.aspect_ratio, width=opt.display_winsize)
-    webpage.save()  # save the HTML
+        end = time.time()
+
+        print("Saved 2 scans. Time taken %s \n\n" % (end - start))
+
