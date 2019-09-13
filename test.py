@@ -55,15 +55,29 @@ if __name__ == '__main__':
     # test with eval mode. This only affects layers like batchnorm and dropout.
     # For [pix2pix]: we use batchnorm and dropout in the original pix2pix. You can experiment it with and without eval() mode.
     # For [CycleGAN]: It should not affect CycleGAN as CycleGAN uses instancenorm without dropout.
+    crops = np.load('./test_crop.npz', allow_pickle=True)['data']
+
     if opt.eval:
         model.eval()
     for i, data in enumerate(dataset):
         if i >= opt.num_test:  # only apply our model to opt.num_test images.
             break
+        
+        ct_name = data['A_paths'][0].split('/')[-1].replace('.npz', '')
+        mr_name = data['B_paths'][0].split('/')[-1].replace('.npz', '')
+        
+        idx1 = crops.item().get(ct_name)
+        idx2 = crops.item().get(mr_name)
+
+        # croppedA = data['A'][0][0][idx1[0]:idx1[1], idx1[2]:idx1[3], idx1[4]: idx1[5]]
+        # croppedB = data['B'][0][0][idx2[0]:idx2[1], idx2[2]:idx2[3], idx2[4]: idx2[5]]
+        
         fake_B = reconstruct_scan(data['A'], model, (256, 256), 'AtoB')
         fake_A = reconstruct_scan(data['B'], model, (256, 256), 'BtoA')
-        np.savez('./results/ct_mr_cyclegan_patch/fake_scans/fake_MR_{}.npz'.format(data['A_paths'][0]), data=fake_B)
-        np.savez('./results/ct_mr_cyclegan_patch/fake_scans/fake_CT_{}.npz'.format(data['B_paths'][0]), data=fake_A)
+
+        np.savez('./results/ct_mr_visceral_spine/fake_scans/fake_MR_{}.npz'.format(ct_name), data=fake_B)
+        np.savez('./results/ct_mr_visceral_spine/fake_scans/fake_CT_{}.npz'.format(mr_name), data=fake_A)
+        
         # model.set_input(data)  # unpack data from data loader
         # model.test()           # run inference
         # visuals = model.get_current_visuals()  # get image results

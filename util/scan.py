@@ -4,7 +4,7 @@ from skimage.util import view_as_windows
 from itertools import product
 from typing import Tuple
 import torch
-
+import torch.nn as nn
 
 # Patch and Unpatchify
 def patchify(patches: np.ndarray, patch_size: Tuple[int, int], step: int = 1):
@@ -171,12 +171,13 @@ def reconstruct_scan(scan, model, im_size, direction):
     print("New scan. Size: ", scan.size())
     scan = scan.view(x, y, z)
     rec_scan = None
+    step = 200   
      
     for i in range(y):
         sl = scan[:, i, :]
         
         # patchify - only step=1 works
-        patches = extract_patches_2d(sl.view(1, 1, x, z), im_size, (64, 64))
+        patches = extract_patches_2d(sl.view(1, 1, x, z), im_size, (step, step))
         # patches = patchify(sl, im_size, step=1)
         rec_patches = []
 
@@ -197,7 +198,7 @@ def reconstruct_scan(scan, model, im_size, direction):
                 rec_patches.append(visuals['fake_A'])
         
         rec_patches = torch.stack(rec_patches)
-        rec_slice = reconstruct_from_patches_2d(rec_patches, (x, z), (64, 64))
+        rec_slice = reconstruct_from_patches_2d(rec_patches, (x, z), (step, step))
         # rec_slice_buff = rec_slice.cpu().numpy().reshape(x, z)
         # np.savez('./test_rec_slice.npz', data=rec_slice_buff)
         # rec_patches = unpatchify(np.array(rec_patches).reshape(original_shape), im_size)
