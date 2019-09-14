@@ -199,13 +199,13 @@ def get_fake_and_rec_scans(scan, model, patch_size, direction='AtoB', side = 'c'
     return fake_scan, rec_scan
 
 
-def save_fake_and_rec_scans(scan_name, target_path, fake_scan, rec_scan):
+def save_fake_and_rec_scans(target_path, scan_name, fake_scan, rec_scan):
     
     # save fake scan as npz
-    np.savez('{}/{}.npz'.format(target_path, scan_name), data=fake_scan)
+    np.savez('{}{}.npz'.format(target_path, scan_name), data=fake_scan)
 
     # save reconstructed scan as npz
-    np.savez('{}/rec_{}.npz'.format(target_path, scan_name), data=rec_scan)
+    np.savez('{}rec_{}.npz'.format(target_path, scan_name), data=rec_scan)
 
     # save scans as nii file
     fake_itk = sitk.GetImageFromArray(fake_scan)

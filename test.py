@@ -34,7 +34,7 @@ from data import create_dataset
 from models import create_model
 from util.visualizer import save_images
 from util import html
-from util.scan import reconstruct_scan, save_scan
+from util.scan import get_fake_and_rec_scans, save_fake_and_rec_scans
 import numpy as np
 import time
 
@@ -64,7 +64,7 @@ if __name__ == '__main__':
         ct_name = data['A_paths'][0].split('/')[-1].replace('.npz', '')
         mr_name = data['B_paths'][0].split('/')[-1].replace('.npz', '')
         
-        target_path = '{}/{}'.format(opt.results_dir, opt.name)
+        target_path = '{}{}'.format(opt.results_dir, opt.name)
         start = time.time()
         
         fake_B, rec_A = get_fake_and_rec_scans(data['A'], model, (256, 256), 'AtoB', 's')
