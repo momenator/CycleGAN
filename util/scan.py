@@ -108,9 +108,8 @@ def save_slice(visuals, target_path):
     np.savez('{}.npz'.format(target_path), data=data)
 
 
-def reconstruct_scan(scan, model, patch_size, direction='AtoB', step=(64, 64)):
+def get_fake_and_rec_scans(scan, model, patch_size, direction='AtoB', side = 'c', step=(64, 64)):
     """
-        Only supports coronal scans for now!
         Returns a fake scan given a real one in numpy array
     """
     
@@ -120,14 +119,35 @@ def reconstruct_scan(scan, model, patch_size, direction='AtoB', step=(64, 64)):
     
     scan = scan.view(x, y, z)
     rec_scan = None
+    fake_scan = None
+    slices = y
+    slice_dim = (x, z)
+    
+    if side == 's':
+        slices = x
+        slice_dim = (y, z)
+
+    elif side == 'a':
+        slices = z
+        slice_dim = (x, y)
+
      
-    for i in range(y):
+    for i in range(slices):
         sl = scan[:, i, :]
-        
         patches = extract_patches_2d(sl.view(1, 1, x, z), patch_size, step)
+
+        if side == 's':
+            sl = scan[i, :, :]
+            patches = extract_patches_2d(sl.view(1, 1, y, z), patch_size, step)
+
+        elif side == 'a':
+            sl = scan[:, :, i]
+            patches = extract_patches_2d(sl.view(1, 1, x, y), patch_size, step)
+        
+        fake_patches = []
         rec_patches = []
 
-        print("Processing slice ", i, " out of ", y)
+        print("Processing slice ", i, " out of ", slices)
 
         for i, patch in enumerate(patches):
             # set up data here
@@ -136,27 +156,56 @@ def reconstruct_scan(scan, model, patch_size, direction='AtoB', step=(64, 64)):
             visuals = model.get_current_visuals()  # get image results
 
             if direction == 'AtoB':
-                rec_patches.append(visuals['fake_B'])
+                fake_patches.append(visuals['fake_B'])
+                rec_patches.append(visuals['rec_A'])
             else:
-                rec_patches.append(visuals['fake_A'])
+                fake_patches.append(visuals['fake_A'])
+                rec_patches.append(visuals['rec_B'])
         
+        fake_patches = torch.stack(fake_patches)
+        fake_slice = reconstruct_from_patches_2d(fake_patches, slice_dim, step)
+
         rec_patches = torch.stack(rec_patches)
-        rec_slice = reconstruct_from_patches_2d(rec_patches, (x, z), step)
-        rec_slice = rec_slice.cpu().numpy().reshape(x, 1, z)
-        
+        rec_slice = reconstruct_from_patches_2d(rec_patches, slice_dim, step)
+
+        join_axis = 1
+        if side == 's':
+            fake_slice = rec_slice.cpu().numpy().reshape(1, y, z)
+            rec_slice = rec_slice.cpu().numpy().reshape(1, y, z)
+            join_axis = 0
+
+        elif side == 'a':
+            fake_slice = rec_slice.cpu().numpy().reshape(x, y, 1)
+            rec_slice = rec_slice.cpu().numpy().reshape(x, y, 1)
+            join_axis = 2
+
+        else:
+            fake_slice = rec_slice.cpu().numpy().reshape(x, 1, z)
+            rec_slice = rec_slice.cpu().numpy().reshape(x, 1, z)
+
+        if fake_scan is None:
+            fake_scan = fake_slice
+        else:
+            fake_scan = np.concatenate((fake_scan, fake_slice), axis=join_axis)
+
         if rec_scan is None:
             rec_scan = rec_slice
         else:
-            rec_scan = np.concatenate((rec_scan, rec_slice), axis=1)
+            rec_scan = np.concatenate((rec_scan, rec_slice), axis=join_axis)
 
+    fake_scan = np.array(fake_scan)
     rec_scan = np.array(rec_scan)
-    return rec_scan
+
+    return fake_scan, rec_scan
 
 
-def save_scan(scan_name, target_path, fake_scan):
+def save_fake_and_rec_scans(scan_name, target_path, fake_scan, rec_scan):
     
-    # save scan as npz
+    # save fake scan as npz
     np.savez('{}/{}.npz'.format(target_path, scan_name), data=fake_scan)
+
+    # save reconstructed scan as npz
+    np.savez('{}/rec_{}.npz'.format(target_path, scan_name), data=rec_scan)
 
     # save scans as nii file
     fake_itk = sitk.GetImageFromArray(fake_scan)
