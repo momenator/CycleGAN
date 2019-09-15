@@ -209,5 +209,5 @@ def save_fake_and_rec_scans(target_path, scan_name, fake_scan, rec_scan):
 
     # save scans as nii file
     fake_itk = sitk.GetImageFromArray(fake_scan)
-    sitk.WriteImage(fake_itk, 'fake_{}.nii.gz'.format(scan_name))
+    sitk.WriteImage(fake_itk, '{}fake_{}.nii.gz'.format(target_path, scan_name))
 
