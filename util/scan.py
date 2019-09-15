@@ -120,27 +120,35 @@ def get_fake_and_rec_scans(scan, model, patch_size, direction='AtoB', side = 'c'
     scan = scan.view(x, y, z)
     rec_scan = None
     fake_scan = None
-    slices = y
-    slice_dim = (x, z)
+    slices = None
+    slice_dim = None
     
     if side == 's':
         slices = x
         slice_dim = (y, z)
+    
+    elif side == 'c':
+        slices = y
+        slice_dim = (x, z)
 
-    elif side == 'a':
+    else:
         slices = z
         slice_dim = (x, y)
 
      
     for i in range(slices):
-        sl = scan[:, i, :]
-        patches = extract_patches_2d(sl.view(1, 1, x, z), patch_size, step)
+        sl = None
+        patches = None
 
         if side == 's':
             sl = scan[i, :, :]
             patches = extract_patches_2d(sl.view(1, 1, y, z), patch_size, step)
 
-        elif side == 'a':
+        elif side == 'c':
+            sl = scan[:, i, :]
+            patches = extract_patches_2d(sl.view(1, 1, x, z), patch_size, step)
+
+        else:
             sl = scan[:, :, i]
             patches = extract_patches_2d(sl.view(1, 1, x, y), patch_size, step)
         
@@ -202,10 +210,10 @@ def get_fake_and_rec_scans(scan, model, patch_size, direction='AtoB', side = 'c'
 def save_fake_and_rec_scans(target_path, scan_name, fake_scan, rec_scan):
     
     # save fake scan as npz
-    np.savez('{}{}.npz'.format(target_path, scan_name), data=fake_scan)
+    np.savez('{}/{}.npz'.format(target_path, scan_name), data=fake_scan)
 
     # save reconstructed scan as npz
-    np.savez('{}rec_{}.npz'.format(target_path, scan_name), data=rec_scan)
+    np.savez('{}/rec_{}.npz'.format(target_path, scan_name), data=rec_scan)
 
     # save scans as nii file
     fake_itk = sitk.GetImageFromArray(fake_scan)
