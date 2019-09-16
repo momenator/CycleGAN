@@ -67,10 +67,10 @@ if __name__ == '__main__':
         target_path = '{}{}'.format(opt.results_dir, opt.name)
         start = time.time()
         
-        fake_B, rec_A = get_fake_and_rec_scans(data['A'], model, (256, 256), 'AtoB', 's')
+        fake_B, rec_A = get_fake_and_rec_scans(data['A'], model, (256, 256), 'AtoB', 'c', (256, 256))
         save_fake_and_rec_scans(target_path, ct_name, fake_B, rec_A)
 
-        fake_A, rec_B = get_fake_and_rec_scans(data['B'], model, (256, 256), 'BtoA', 's')
+        fake_A, rec_B = get_fake_and_rec_scans(data['B'], model, (256, 256), 'BtoA', 'c', (256, 256))
         save_fake_and_rec_scans(target_path, mr_name, fake_A, rec_B)
         
         end = time.time()
