@@ -123,7 +123,7 @@ def get_fake_and_rec_scans(scan, model, patch_size, direction='AtoB', side = 'c'
     slices = None
     slice_dim = None
     
-    if side == 's':
+    if side == 'a':
         slices = x
         slice_dim = (y, z)
     
