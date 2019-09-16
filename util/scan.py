@@ -141,16 +141,16 @@ def get_fake_and_rec_scans(scan, model, patch_size, direction='AtoB', side = 'c'
         patches = None
 
         if side == 's':
-            sl = scan[i, :, :]
-            patches = extract_patches_2d(sl.view(1, 1, y, z), patch_size, step)
+            sl = scan[:, :, i]
+            patches = extract_patches_2d(sl.view(1, 1, x, y), patch_size, step)
 
         elif side == 'c':
             sl = scan[:, i, :]
             patches = extract_patches_2d(sl.view(1, 1, x, z), patch_size, step)
 
         else:
-            sl = scan[:, :, i]
-            patches = extract_patches_2d(sl.view(1, 1, x, y), patch_size, step)
+            sl = scan[i, :, :]
+            patches = extract_patches_2d(sl.view(1, 1, y, z), patch_size, step)
         
         fake_patches = []
         rec_patches = []
@@ -217,5 +217,5 @@ def save_fake_and_rec_scans(target_path, scan_name, fake_scan, rec_scan):
 
     # save scans as nii file
     fake_itk = sitk.GetImageFromArray(fake_scan)
-    sitk.WriteImage(fake_itk, '{}fake_{}.nii.gz'.format(target_path, scan_name))
+    sitk.WriteImage(fake_itk, '{}/fake_{}.nii.gz'.format(target_path, scan_name))
 
