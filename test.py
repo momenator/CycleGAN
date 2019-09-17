@@ -55,6 +55,10 @@ if __name__ == '__main__':
     # For [pix2pix]: we use batchnorm and dropout in the original pix2pix. You can experiment it with and without eval() mode.
     # For [CycleGAN]: It should not affect CycleGAN as CycleGAN uses instancenorm without dropout.
     
+    # create test directory
+    target_path = '{}{}'.format(opt.results_dir, opt.name)
+    os.makedirs(target_path, exist_ok=True)
+
     if opt.eval:
         model.eval()
     for i, data in enumerate(dataset):
@@ -64,13 +68,12 @@ if __name__ == '__main__':
         ct_name = data['A_paths'][0].split('/')[-1].replace('.npz', '')
         mr_name = data['B_paths'][0].split('/')[-1].replace('.npz', '')
         
-        target_path = '{}{}'.format(opt.results_dir, opt.name)
         start = time.time()
         
-        fake_B, rec_A = get_fake_and_rec_scans(data['A'], model, (256, 256), 'AtoB', 'c', (256, 256))
+        fake_B, rec_A = get_fake_and_rec_scans(data['A'], model, (128, 128), 'AtoB', 'a', (128, 128))
         save_fake_and_rec_scans(target_path, ct_name, fake_B, rec_A)
 
-        fake_A, rec_B = get_fake_and_rec_scans(data['B'], model, (256, 256), 'BtoA', 'c', (256, 256))
+        fake_A, rec_B = get_fake_and_rec_scans(data['B'], model, (128, 128), 'BtoA', 'a', (128, 128))
         save_fake_and_rec_scans(target_path, mr_name, fake_A, rec_B)
         
         end = time.time()

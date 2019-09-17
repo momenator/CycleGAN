@@ -123,7 +123,7 @@ def get_fake_and_rec_scans(scan, model, patch_size, direction='AtoB', side = 'c'
     slices = None
     slice_dim = None
     
-    if side == 'a':
+    if side == 's':
         slices = x
         slice_dim = (y, z)
     
@@ -141,16 +141,16 @@ def get_fake_and_rec_scans(scan, model, patch_size, direction='AtoB', side = 'c'
         patches = None
 
         if side == 's':
-            sl = scan[:, :, i]
-            patches = extract_patches_2d(sl.view(1, 1, x, y), patch_size, step)
+            sl = scan[i, :, :]
+            patches = extract_patches_2d(sl.view(1, 1, y, z), patch_size, step)
 
         elif side == 'c':
             sl = scan[:, i, :]
             patches = extract_patches_2d(sl.view(1, 1, x, z), patch_size, step)
 
         else:
-            sl = scan[i, :, :]
-            patches = extract_patches_2d(sl.view(1, 1, y, z), patch_size, step)
+            sl = scan[:, :, i]
+            patches = extract_patches_2d(sl.view(1, 1, x, y), patch_size, step)
         
         fake_patches = []
         rec_patches = []
@@ -176,20 +176,20 @@ def get_fake_and_rec_scans(scan, model, patch_size, direction='AtoB', side = 'c'
         rec_patches = torch.stack(rec_patches)
         rec_slice = reconstruct_from_patches_2d(rec_patches, slice_dim, step)
 
-        join_axis = 1
+        join_axis = 2
         if side == 's':
             fake_slice = rec_slice.cpu().numpy().reshape(1, y, z)
             rec_slice = rec_slice.cpu().numpy().reshape(1, y, z)
             join_axis = 0
 
-        elif side == 'a':
-            fake_slice = rec_slice.cpu().numpy().reshape(x, y, 1)
-            rec_slice = rec_slice.cpu().numpy().reshape(x, y, 1)
-            join_axis = 2
-
-        else:
+        elif side == 'c':
             fake_slice = rec_slice.cpu().numpy().reshape(x, 1, z)
             rec_slice = rec_slice.cpu().numpy().reshape(x, 1, z)
+            join_axis = 1
+
+        else:
+            fake_slice = rec_slice.cpu().numpy().reshape(x, y, 1)
+            rec_slice = rec_slice.cpu().numpy().reshape(x, y, 1)
 
         if fake_scan is None:
             fake_scan = fake_slice
@@ -203,6 +203,10 @@ def get_fake_and_rec_scans(scan, model, patch_size, direction='AtoB', side = 'c'
 
     fake_scan = np.array(fake_scan)
     rec_scan = np.array(rec_scan)
+
+    assert(fake_scan.shape[0] == x)
+    assert(fake_scan.shape[1] == y)
+    assert(fake_scan.shape[2] == z)
 
     return fake_scan, rec_scan
 
