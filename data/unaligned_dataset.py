@@ -1,5 +1,5 @@
 import os.path
-from data.base_dataset import BaseDataset, get_transform
+from data.base_dataset import BaseDataset, get_transform, preprocess_numpy_img
 from data.image_folder import make_dataset
 from PIL import Image
 import numpy as np
@@ -61,8 +61,14 @@ class UnalignedDataset(BaseDataset):
         # apply image transformation - SKIP FOR NOW!
         # A = self.transform_A(A_img)
         # B = self.transform_B(B_img)
+        
         A = np.array([np.load(A_path)['data']]).astype(np.float32)
-        B = np.array([np.load(B_path)['data']]).astype(np.float32)	
+        B = np.array([np.load(B_path)['data']]).astype(np.float32)
+
+        # apply transformation
+        if opt.preprocess != 'none':
+            A = preprocess_numpy_img(A)
+            B = preprocess_numpy_img(B)
 
         return {'A': A, 'B': B, 'A_paths': A_path, 'B_paths': B_path}
 
