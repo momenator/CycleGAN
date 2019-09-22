@@ -66,7 +66,7 @@ class UnalignedDataset(BaseDataset):
         B = np.array([np.load(B_path)['data']]).astype(np.float32)
 
         # apply transformation
-        if opt.preprocess != 'none':
+        if self.opt.preprocess != 'none':
             A = preprocess_numpy_img(A)
             B = preprocess_numpy_img(B)
 

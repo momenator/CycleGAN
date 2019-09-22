@@ -131,7 +131,7 @@ def preprocess_numpy_img(numpy_img):
 
     # random flip
     is_flip = np.random.random()
-    is_flip > 0.5:
+    if is_flip > 0.5:
         cropped = np.flip(cropped)
     return cropped
 
