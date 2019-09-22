@@ -123,7 +123,7 @@ def get_fake_and_rec_scans(scan, model, patch_size, direction='AtoB', side = 'c'
     slices = None
     slice_dim = None
     
-    if side == 's':
+    if side == 'a':
         slices = x
         slice_dim = (y, z)
     
@@ -140,7 +140,7 @@ def get_fake_and_rec_scans(scan, model, patch_size, direction='AtoB', side = 'c'
         sl = None
         patches = None
 
-        if side == 's':
+        if side == 'a':
             sl = scan[i, :, :]
             patches = extract_patches_2d(sl.view(1, 1, y, z), patch_size, step)
 
@@ -177,18 +177,18 @@ def get_fake_and_rec_scans(scan, model, patch_size, direction='AtoB', side = 'c'
         rec_slice = reconstruct_from_patches_2d(rec_patches, slice_dim, step)
 
         join_axis = 2
-        if side == 's':
-            fake_slice = rec_slice.cpu().numpy().reshape(1, y, z)
+        if side == 'a':
+            fake_slice = fake_slice.cpu().numpy().reshape(1, y, z)
             rec_slice = rec_slice.cpu().numpy().reshape(1, y, z)
             join_axis = 0
 
         elif side == 'c':
-            fake_slice = rec_slice.cpu().numpy().reshape(x, 1, z)
+            fake_slice = fake_slice.cpu().numpy().reshape(x, 1, z)
             rec_slice = rec_slice.cpu().numpy().reshape(x, 1, z)
             join_axis = 1
 
         else:
-            fake_slice = rec_slice.cpu().numpy().reshape(x, y, 1)
+            fake_slice = fake_slice.cpu().numpy().reshape(x, y, 1)
             rec_slice = rec_slice.cpu().numpy().reshape(x, y, 1)
 
         if fake_scan is None:
@@ -214,7 +214,7 @@ def get_fake_and_rec_scans(scan, model, patch_size, direction='AtoB', side = 'c'
 def save_fake_and_rec_scans(target_path, scan_name, fake_scan, rec_scan):
     
     # save fake scan as npz
-    np.savez('{}/{}.npz'.format(target_path, scan_name), data=fake_scan)
+    np.savez('{}/fake_{}.npz'.format(target_path, scan_name), data=fake_scan)
 
     # save reconstructed scan as npz
     np.savez('{}/rec_{}.npz'.format(target_path, scan_name), data=rec_scan)
