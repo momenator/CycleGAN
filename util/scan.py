@@ -171,9 +171,12 @@ def get_fake_and_rec_scans(scan, model, patch_size, direction='AtoB', side = 'c'
                 rec_patches.append(visuals['rec_B'])
         
         fake_patches = torch.stack(fake_patches)
+        # to minimise patching effect, try centering data
+        # fake_patches = fake_patches - fake_patches.mean()
         fake_slice = reconstruct_from_patches_2d(fake_patches, slice_dim, step)
 
         rec_patches = torch.stack(rec_patches)
+        # rec_patches = rec_patches - rec_patches.mean()
         rec_slice = reconstruct_from_patches_2d(rec_patches, slice_dim, step)
 
         join_axis = 2

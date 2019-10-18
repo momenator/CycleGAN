@@ -70,10 +70,10 @@ if __name__ == '__main__':
         
         start = time.time()
         
-        fake_B, rec_A = get_fake_and_rec_scans(data['A'], model, (128, 128), 'AtoB', 'a', (128, 128))
+        fake_B, rec_A = get_fake_and_rec_scans(data['A'], model, (256, 256), 'AtoB', 'c', (64, 64))
         save_fake_and_rec_scans(target_path, ct_name, fake_B, rec_A)
 
-        fake_A, rec_B = get_fake_and_rec_scans(data['B'], model, (128, 128), 'BtoA', 'a', (128, 128))
+        fake_A, rec_B = get_fake_and_rec_scans(data['B'], model, (256, 256), 'BtoA', 'c', (64, 64))
         save_fake_and_rec_scans(target_path, mr_name, fake_A, rec_B)
         
         end = time.time()

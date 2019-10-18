@@ -113,27 +113,33 @@ def get_transform(opt, params=None, grayscale=False, method=Image.BICUBIC, conve
 
 
 def preprocess_numpy_img(numpy_img):
-    assert(numpy_img.shape[0] == 256)
-    assert(numpy_img.shape[1] == 256)
+    # original shape is (1, 256, 256)
+    img = numpy_img.reshape(256, 256)
+    assert(img.shape[0] == 256)
+    assert(img.shape[1] == 256)
 
     # pad image with min value -1 (lower bound of normalised value) to 286 * 286
-    padded = np.pad(numpy_img, (15, 15), 'constant', constant_values=(-1, -1))
+    # padded = np.pad(img, (15, 15), 'constant', constant_values=(-1, -1))
 
-    assert(padded.shape[0] == 286)
-    assert(padded.shape[1] == 286)
+    # assert(padded.shape[0] == 286)
+    # assert(padded.shape[1] == 286)
 
     # random crop
-    i = np.random.randint(30)
-    j = np.random.randint(30)
+    # i = np.random.randint(30)
+    # j = np.random.randint(30)
 
-    cropped_size = 256
-    cropped = padded[i: i+cropped_size, j: j+cropped_size]
+    # cropped_size = 256
+    # cropped = padded[i: i+cropped_size, j: j+cropped_size]
 
     # random flip
     is_flip = np.random.random()
     if is_flip > 0.5:
-        cropped = np.flip(cropped)
-    return cropped
+        img = np.flip(img)
+    # reshaped back to original shape
+    processed_img = img.reshape(1, 256, 256)
+    processed_img = np.ascontiguousarray(processed_img, dtype=np.float32)
+    
+    return processed_img
 
 
 def __make_power_2(img, base, method=Image.BICUBIC):
