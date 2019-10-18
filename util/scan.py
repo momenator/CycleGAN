@@ -8,13 +8,32 @@ import torch.nn as nn
 import SimpleITK as sitk
 
 
-# resize image
 def resize_img(img, size=256):
+    """Resize an image using the zoom function. Assumes that the input image is square.
+    
+    Parameters:
+        img     - numpy array containing the image
+        size    - target size
+    
+    Returns:
+        resized image
+    """
     x, y = img.shape
     return zoom(img, (size/x, size/y))
 
 
 def extract_patches_2d(img, patch_shape, step=[1.0,1.0], batch_first=False):
+    """Extract small patches from a larger image.
+
+    Parameters:
+        img             - 2d image stored in Torch.Tensor
+        patch_shape     - Shape of the patch to be cropped (2d)
+        step            - step size along the x and y directions
+        batch_first     - a flag to indicate if the current img is the first batch
+    
+    Returns:
+        Array containing tensors (Torch.Tensor) which contains all the patches from a given image.
+    """
     
     patch_H, patch_W = patch_shape[0], patch_shape[1]
     
@@ -51,7 +70,19 @@ def extract_patches_2d(img, patch_shape, step=[1.0,1.0], batch_first=False):
 
 
 def reconstruct_from_patches_2d(patches, img_shape, step=[1.0,1.0], batch_first=False):
+    """Given patches generated from extract_patches_2d function, creates the original unpatched image. We keep track of the
+    overlapped regions and average them in the end.
+
+    Parameters:
+        patches         - Patches from a larger image
+        img_shape       - Shape of the original image (2d)
+        step            - step size along the x and y directions
+        batch_first     - a flag to indicate if the current img is the first batch
     
+    Returns:
+        A Tensor (Torch.Tensor) which contains a reconstructed image from the patches.
+    """
+
     if(batch_first):
         patches = patches.permute(1,0,2,3,4)
     
@@ -98,6 +129,14 @@ def reconstruct_from_patches_2d(patches, img_shape, step=[1.0,1.0], batch_first=
 
 
 def save_slice(visuals, target_path):
+    """Save results from the training set as numpy arrays to the given target path
+
+    Parameters:
+        visuals     - dictionary containing tensors that represent the real, fake and reconstructed images.
+        target_path - path to save the images (as numpy arrays)
+    
+    Returns: None
+    """
     data = {}
     data['real_A'] = visuals['real_A'].cpu().numpy()
     data['real_B'] = visuals['real_B'].cpu().numpy()
@@ -109,8 +148,20 @@ def save_slice(visuals, target_path):
 
 
 def get_fake_and_rec_scans(scan, model, patch_size, direction='AtoB', side = 'c', step=(64, 64)):
-    """
-        Returns a fake scan given a real one in numpy array
+    """This function runs the inference step and returns the fake and reconstructed scans in numpy format given a real
+    scan (Torch.Tensor). 
+
+     Parameters:
+        scan            - Tensor containing the full scan
+        model           - Trained CycleGAN that can generate square images
+        patch_size      - Size of the patches
+        direction       - Indicate translation direction, another option is 'BtoA'
+        side            - Side/plane to take the patches from. There are 2 options: 'a' and 'c', which indicate axial and
+                        - coronal plane. If not these 2, assume that the desired plane is saggital.
+        step            - Step size along the x and y directions when cropping the patches from the scan slice.
+
+    Returns:
+        fake and reconstructed scans
     """
     
     _, _, x, y, z = scan.size()
@@ -215,6 +266,16 @@ def get_fake_and_rec_scans(scan, model, patch_size, direction='AtoB', side = 'c'
 
 
 def save_fake_and_rec_scans(target_path, scan_name, fake_scan, rec_scan):
+    """Save fake and reconstructed scans into numpy arrays. In addition, we also save fake scan as NifTi format.
+
+    Arguments:
+        target_path     - Path to save the fake and reconstructed scans
+        scan_name       - name of original scan
+        fake_scan       - fake scan generated from get_fake_and_rec_scans
+        rec_scan        - reconstructed scan
+    
+    Returns: None
+    """
     
     # save fake scan as npz
     np.savez('{}/fake_{}.npz'.format(target_path, scan_name), data=fake_scan)
