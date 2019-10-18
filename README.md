@@ -23,8 +23,12 @@ can be viewed in the directory ```/results/model_name```.
 
 ### Results
 CT to MR translation
+<br><br>
 <img src='imgs/ct_mr.png' width=400>
 
+<br><br>
+
 MR to CT translation
+<br><br>
 <img src='imgs/mr_ct.png' width=400>
 
