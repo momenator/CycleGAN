@@ -22,5 +22,9 @@ be sure that the right domain is in the right folder.
 can be viewed in the directory ```/results/model_name```.
 
 ### Results
-<img src='imgs/mr_ct.png' align="right" width=400>
+CT to MR translation
+<img src='imgs/ct_mr.png' width=400>
+
+MR to CT translation
+<img src='imgs/mr_ct.png' width=400>
 
